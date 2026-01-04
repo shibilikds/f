@@ -2,49 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fiqh Hub - Multi-School Inheritance & Zakah</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>Fiqh Hub - Shāfiʿī Inheritance & Zakah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Amiri:wght@400;700&family=Noto+Sans+Malayalam:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #020617;
-            color: #f1f5f9;
-            overflow-x: hidden;
+        body { 
+            font-family: 'Inter', 'Noto Sans Malayalam', sans-serif; 
+            background-color: #020617; 
+            color: #f1f5f9; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            z-index: 50;
+        .arabic { font-family: 'Amiri', serif; direction: rtl; }
+        .glass-card { 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05); 
         }
-        ::-webkit-scrollbar {
-            width: 6px;
+        .bottom-nav { 
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            z-index: 50; 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
-        ::-webkit-scrollbar-track {
-            background: #020617;
+        .mahjub-card {
+            opacity: 0.5;
+            filter: grayscale(0.6);
+            border: 1px dashed rgba(255, 255, 255, 0.1) !important;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #1e293b;
-            border-radius: 10px;
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #334155;
-        }
-        .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
     </style>
     <script type="importmap">
 {
@@ -53,8 +55,8 @@
     "react-dom": "https://esm.sh/react-dom@18.3.1",
     "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
     "lucide-react": "https://esm.sh/lucide-react@0.424.0?external=react",
-    "recharts": "https://esm.sh/recharts@2.12.7?external=react,react-dom",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "recharts": "https://esm.sh/recharts@^3.6.0"
   }
 }
 </script>
@@ -63,483 +65,356 @@
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useMemo } from 'react';
+        import React, { useState, useEffect } from 'react';
         import ReactDOM from 'react-dom/client';
         import { 
-            Home as HomeIcon, 
-            Calculator as CalcIcon, 
-            BookOpen, 
-            BarChart3, 
-            Info as InfoIcon, 
-            Wallet, 
-            Scale, 
-            ChevronDown, 
-            ArrowLeft, 
-            Plus, 
-            Minus, 
-            Users, 
-            HelpCircle,
-            Coins,
-            RefreshCcw,
-            ShieldCheck,
-            Bookmark,
-            AlertCircle,
-            CheckCircle2,
-            GitGraph,
-            Layers,
-            Code,
-            Server,
-            GraduationCap,
-            Mail,
-            Globe,
-            FileText,
-            PieChart as PieChartIcon
+            Home as HomeIcon, Calculator as CalcIcon, Wallet, Scale, ArrowLeft, Plus, Minus, 
+            User, ShieldAlert, Ban, Info, AlertCircle, Coins, ArrowRight
         } from 'lucide-react';
-        import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
-        // --- CONSTANTS & TYPES ---
-        const Page = {
-            Home: 'home',
-            InheritanceCalc: 'inheritance-calc',
-            InheritanceAmount: 'inheritance-amount',
-            ZakahCalc: 'zakah-calc',
-            InheritanceRules: 'inheritance-rules',
-            ZakahRules: 'zakah-rules',
-            Charts: 'charts',
-            About: 'about'
-        };
-
-        const School = {
-            SHAFI: 'shafi',
-            HANAFI: 'hanafi',
-            MALIKI: 'maliki',
-            HANBALI: 'hanbali'
-        };
-
-        const NISAB_GOLD_GRAMS = 85;
-
-        // --- ENGINES ---
-        const fetchGoldPrice = async () => {
-            try {
-                const response = await fetch('https://www.goldapi.io/api/XAU/INR', {
-                    headers: { 'x-access-token': 'goldapi-dnkmsmjyq5wle-io' }
-                });
-                const data = await response.json();
-                const pricePerGram = data.price_gram_24k || (data.price / 31.1034768);
-                return { price: pricePerGram, currency: 'INR', timestamp: new Date().toLocaleDateString() };
-            } catch (error) {
-                return { price: 7950.00, currency: 'INR', timestamp: `${new Date().toLocaleDateString()} (Estimated)` };
+        const TRANSLATIONS = {
+            en: {
+                home: "Home", shares: "Inheritance", value: "Estate Value", zakah: "Zakah Calc", calc: "Calculate",
+                title: "Fiqh Hub", subtitle: "Shafi'i Jurisprudence",
+                categories: { family: "Primary Family", descendants: "Descendants", siblings: "Siblings", extended: "Extended Family" },
+                btnRun: "Run Calculation", back: "Back",
+                perPerson: "Per Individual", totalGroup: "Group Total",
+                excluded: "Excluded (Mahjub)", blockedBy: "Blocked by presence of",
+                cashSavings: "Cash & Savings", goldGrams: "Gold (Grams)",
+                fractions: { '1/2': '1/2', '1/4': '1/4', '1/8': '1/8', '1/6': '1/6', '1/3': '1/3', '2/3': '2/3', 'Asaba': 'Asaba', '1/6 + Asaba': '1/6 + Asaba', 'None': 'Excluded' }
+            },
+            ml: {
+                home: "ഹോം", shares: "അനന്തരാവകാശം", value: "സ്വത്ത് മൂല്യം", zakah: "സകാത്ത്", calc: "കണക്കാക്കുക",
+                title: "ഫിഖ്ഹ് ഹബ്", subtitle: "ഷാഫിഈ കർമ്മശാസ്ത്രം",
+                categories: { family: "അടുത്ത ബന്ധുക്കൾ", descendants: "സന്താനങ്ങൾ", siblings: "സഹോദരങ്ങൾ", extended: "മറ്റു ബന്ധുക്കൾ" },
+                btnRun: "കണക്കാക്കുക", back: "പിന്നിലേക്ക്",
+                perPerson: "ഒരാൾക്ക് ലഭിക്കുന്നത്", totalGroup: "ആകെ വിഹിതം",
+                excluded: "ഹജ്ബ് ചെയ്യപ്പെട്ടു", blockedBy: "തടയപ്പെട്ടത്:",
+                cashSavings: "പണം & സേവിങ്‌സ്", goldGrams: "സ്വർണ്ണം (ഗ്രാം)",
+                fractions: { '1/2': '1/2 (പകുതി)', '1/4': '1/4 (കാൽ)', '1/8': '1/8 (എട്ടിലൊന്ന്)', '1/6': '1/6 (ആറിലൊന്ന്)', '1/3': '1/3 (മൂന്നിലൊന്ന്)', '2/3': '2/3 (മൂന്നിൽ രണ്ട്)', 'Asaba': 'അസബ (ബാക്കി)', '1/6 + Asaba': '1/6 + അസബ', 'None': 'അവകാശമില്ല' }
+            },
+            ar: {
+                home: "الرئيسية", shares: "المواريث", value: "قيمة التركة", zakah: "الزكاة", calc: "احسب",
+                title: "ملتقى الفقه", subtitle: "الفقه الشافعي",
+                categories: { family: "الأصول", descendants: "الفروع", siblings: "الحواشي", extended: "العصبات" },
+                btnRun: "بدء الحساب", back: "رجوع",
+                perPerson: "نصيب الفرد", totalGroup: "إجمالي السهم",
+                excluded: "محجوب", blockedBy: "حُجب بوجود",
+                cashSavings: "السيولة", goldGrams: "وزن الذهب",
+                fractions: { '1/2': '١/٢', '1/4': '١/٤', '1/8': '١/٨', '1/6': '١/٦', '1/3': '١/٣', '2/3': '٢/٣', 'Asaba': 'عصبة', '1/6 + Asaba': '١/٦ + عصبة', 'None': 'محجوب' }
             }
         };
 
-        const calculateInheritance = (inputs, totalAmount, school = School.SHAFI) => {
-            const results = [];
-            const { sons, daughters, wife, husband, mother, father, fullBrothers, fullSisters } = inputs;
-            const hasChildren = sons > 0 || daughters > 0;
-            let totalSharesNum = 0;
-            const commonDenominator = 24;
+        const HEIR_INFO = {
+            husband: { en: "Husband", ml: "ഭർത്താവ്", ar: "الزوج" },
+            wife: { en: "Wife", ml: "ഭാര്യ", ar: "الزوجة" },
+            sons: { en: "Sons", ml: "ആൺമക്കൾ", ar: "الأبناء" },
+            daughters: { en: "Daughters", ml: "പെൺമക്കൾ", ar: "البنات" },
+            grandsons: { en: "Grandsons", ml: "പൗത്രൻ", ar: "ابن الابن" },
+            granddaughters: { en: "Granddaughters", ml: "പൗത്രി", ar: "بنت الابن" },
+            father: { en: "Father", ml: "പിതാവ്", ar: "الأب" },
+            mother: { en: "Mother", ml: "മാതാവ്", ar: "الأم" },
+            grandfather: { en: "Grandfather", ml: "പിതാമഹൻ", ar: "الجد" },
+            patGrandmother: { en: "Paternal Grandma", ml: "അച്ഛന്റെ ഉമ്മ", ar: "الجدة لأب" },
+            matGrandmother: { en: "Maternal Grandma", ml: "ഉമ്മയുടെ ഉമ്മ", ar: "الجدة لأم" },
+            fullBrothers: { en: "Full Brothers", ml: "സഹോദരൻ (കൂടപ്പിറന്ന)", ar: "الأخ الشقيق" },
+            fullSisters: { en: "Full Sisters", ml: "സഹോദരി (കൂടപ്പിറന്ന)", ar: "الأخت الشقيقة" },
+            patBrothers: { en: "Pat. Brothers", ml: "സഹോദരൻ (അച്ഛൻ വഴി)", ar: "الأخ لأب" },
+            patSisters: { en: "Pat. Sisters", ml: "സഹോദരി (അച്ഛൻ വഴി)", ar: "الأخت لأب" },
+            matBrothers: { en: "Mat. Brothers", ml: "സഹോദരൻ (ഉമ്മ വഴി)", ar: "الأخ لأم" },
+            matSisters: { en: "Mat. Sisters", ml: "സഹോദരി (ഉമ്മ വഴി)", ar: "الأخت لأم" }
+        };
 
-            // 1. Fixed Shares
-            if (husband) {
-                const val = hasChildren ? 6 : 12;
-                results.push({ name: 'Husband', fraction: hasChildren ? '1/4' : '1/2', percentage: (val / 24) * 100, description: "Fixed scriptural share." });
-                totalSharesNum += val;
-            } else if (wife > 0) {
-                const val = hasChildren ? 3 : 6;
-                results.push({ name: wife > 1 ? `Wives (${wife})` : 'Wife', fraction: hasChildren ? '1/8' : '1/4', percentage: (val / 24) * 100, description: "Collective fixed share." });
-                totalSharesNum += val;
-            }
+        const Page = { Home: 'home', InheritanceCalc: 'inheritance-calc', InheritanceAmount: 'inheritance-amount', ZakahCalc: 'zakah-calc' };
 
-            if (mother) {
-                const hasSiblings = (fullBrothers + fullSisters) >= 2;
-                const val = (hasChildren || hasSiblings) ? 4 : 8;
-                results.push({ name: 'Mother', fraction: (hasChildren || hasSiblings) ? '1/6' : '1/3', percentage: (val / 24) * 100, description: "Fixed share." });
-                totalSharesNum += val;
-            }
-
-            if (father) {
-                if (sons > 0) {
-                    results.push({ name: 'Father', fraction: '1/6', percentage: (4 / 24) * 100, description: 'Fixed share due to male descendants.' });
-                    totalSharesNum += 4;
-                } else if (daughters > 0) {
-                    results.push({ name: 'Father', fraction: '1/6 + Residue', percentage: (4 / 24) * 100, description: 'Takes 1/6 portion plus any residue.' });
-                    totalSharesNum += 4;
-                }
-            }
-
-            if (daughters > 0 && sons === 0) {
-                const val = daughters === 1 ? 12 : 16;
-                results.push({ name: daughters > 1 ? `Daughters (${daughters})` : 'Daughter', fraction: daughters === 1 ? '1/2' : '2/3', percentage: (val / 24) * 100, description: 'Fixed scriptural share.' });
-                totalSharesNum += val;
-            }
-
-            // 'Awl (Proportional Reduction)
-            if (totalSharesNum > commonDenominator) {
-                results.forEach(r => {
-                    const originalNumerator = (r.percentage / 100) * commonDenominator;
-                    r.percentage = (originalNumerator / totalSharesNum) * 100;
-                });
-            }
-
-            let distributedPercentage = results.reduce((acc, r) => acc + r.percentage, 0);
-            let remainder = Math.max(0, 100 - distributedPercentage);
+        const calculateInheritance = (inputs, totalAmount, lang) => {
+            let results = [];
+            let exclusions = [];
+            const { husband, wife, sons, daughters, father, mother, grandsons, granddaughters, grandfather, patGrandmother, matGrandmother } = inputs;
             
-            if (remainder > 0) {
-                if (sons > 0) {
-                    const ratioParts = (sons * 2) + daughters;
-                    const partValue = remainder / ratioParts;
-                    results.push({ name: sons > 1 ? `Sons (${sons})` : 'Son', fraction: 'Residue (2:1)', percentage: (partValue * 2) * sons, description: `Agnatic residue shared with daughters.` });
-                    if (daughters > 0) results.push({ name: daughters > 1 ? `Daughters (${daughters})` : 'Daughter', fraction: 'Residue (2:1)', percentage: partValue * daughters, description: `Agnatic residue shared with sons.` });
-                } else if (father) {
-                    const f = results.find(r => r.name === 'Father');
-                    if (f) f.percentage += remainder; 
-                    else results.push({ name: 'Father', fraction: 'Residue', percentage: remainder, description: 'Takes entire residue as closest agnate.' });
-                } else {
-                    const canRadd = school === School.HANAFI || school === School.HANBALI;
-                    if (canRadd) {
-                        const bloodHeirs = results.filter(r => !['Husband', 'Wife'].some(s => r.name.includes(s)));
-                        if (bloodHeirs.length > 0) {
-                            const weight = bloodHeirs.reduce((acc, r) => acc + r.percentage, 0);
-                            bloodHeirs.forEach(h => { h.percentage += (h.percentage / weight) * remainder; h.description += " (Including Radd)"; });
-                        } else results.push({ name: 'Public Treasury (Bait al-Mal)', fraction: 'Residue', percentage: remainder, description: 'No Radd allowed for spouses alone.' });
-                    } else {
-                        results.push({ name: 'Public Treasury (Bait al-Mal)', fraction: 'Residue', percentage: remainder, description: 'Surplus residue in Shafi/Maliki position.' });
+            const hasDescendants = (sons > 0 || daughters > 0 || grandsons > 0 || granddaughters > 0);
+            const hasMaleDescendants = (sons > 0 || grandsons > 0);
+
+            const addExclusion = (id, blockedById) => {
+                if (inputs[id] > 0 || inputs[id] === true) {
+                    exclusions.push({ 
+                        id, 
+                        name: HEIR_INFO[id][lang], 
+                        blockedBy: HEIR_INFO[blockedById][lang],
+                        fractionKey: 'None',
+                        percentage: 0,
+                        isMahjub: true
+                    });
+                }
+            };
+
+            // Shafi'i Hajb Rules
+            if (father) addExclusion('grandfather', 'father');
+            if (mother) { addExclusion('patGrandmother', 'mother'); addExclusion('matGrandmother', 'mother'); }
+            if (father) addExclusion('patGrandmother', 'father');
+            if (sons > 0) { addExclusion('grandsons', 'sons'); addExclusion('granddaughters', 'sons'); }
+            
+            const sibBlocker = (father || hasMaleDescendants);
+            if (sibBlocker) {
+                const bId = father ? 'father' : (sons > 0 ? 'sons' : 'grandsons');
+                ['fullBrothers', 'fullSisters', 'patBrothers', 'patSisters', 'matBrothers', 'matSisters'].forEach(id => addExclusion(id, bId));
+            }
+
+            const active = { ...inputs };
+            exclusions.forEach(e => active[e.id] = 0);
+
+            let totalSharesNum = 0;
+            const commonD = 24;
+
+            if (active.husband) {
+                const val = hasDescendants ? 6 : 12;
+                results.push({ id: 'husband', fractionKey: hasDescendants ? '1/4' : '1/2', percentage: (val/24)*100 });
+                totalSharesNum += val;
+            } else if (active.wife > 0) {
+                const val = hasDescendants ? 3 : 6;
+                results.push({ id: 'wife', fractionKey: hasDescendants ? '1/8' : '1/4', percentage: (val/24)*100 });
+                totalSharesNum += val;
+            }
+
+            if (active.mother) {
+                const val = hasDescendants ? 4 : 8;
+                results.push({ id: 'mother', fractionKey: hasDescendants ? '1/6' : '1/3', percentage: (val/24)*100 });
+                totalSharesNum += val;
+            }
+
+            if (active.father && hasMaleDescendants) {
+                results.push({ id: 'father', fractionKey: '1/6', percentage: (4/24)*100 });
+                totalSharesNum += 4;
+            }
+
+            if (active.daughters > 0 && active.sons === 0) {
+                const val = active.daughters === 1 ? 12 : 16;
+                results.push({ id: 'daughters', fractionKey: active.daughters === 1 ? '1/2' : '2/3', percentage: (val/24)*100 });
+                totalSharesNum += val;
+            }
+
+            // Adjustment for Awl if needed
+            if (totalSharesNum > commonD) {
+                results.forEach(r => r.percentage = (((r.percentage/100)*commonD)/totalSharesNum)*100);
+            }
+
+            let residue = Math.max(0, 100 - results.reduce((acc, r) => acc + r.percentage, 0));
+            if (residue > 0) {
+                const asabaTiers = [
+                    { id: 'sons', partner: 'daughters' },
+                    { id: 'grandsons', partner: 'granddaughters' },
+                    { id: 'father', special: true },
+                    { id: 'fullBrothers', partner: 'fullSisters' },
+                    { id: 'patBrothers', partner: 'patSisters' }
+                ];
+
+                for (const tier of asabaTiers) {
+                    if (tier.id === 'father' && active.father && !hasMaleDescendants) {
+                        const existing = results.find(r => r.id === 'father');
+                        if (existing) { existing.percentage += residue; existing.fractionKey = "1/6 + Asaba"; }
+                        else results.push({ id: 'father', fractionKey: 'Asaba', percentage: residue });
+                        residue = 0; break;
+                    }
+                    if (active[tier.id] > 0) {
+                        const cP = active[tier.id];
+                        const cPartner = tier.partner ? (active[tier.partner] || 0) : 0;
+                        const units = (cP * 2) + cPartner;
+                        const unitVal = residue / units;
+                        results.push({ id: tier.id, fractionKey: 'Asaba', percentage: unitVal * 2 * cP });
+                        if (cPartner > 0) results.push({ id: tier.partner, fractionKey: 'Asaba', percentage: unitVal * cPartner });
+                        residue = 0; break;
                     }
                 }
             }
 
-            if (totalAmount) results.forEach(r => r.amount = (r.percentage / 100) * totalAmount);
-            return results;
+            return [...results, ...exclusions].map(r => ({
+                ...r,
+                name: HEIR_INFO[r.id][lang],
+                amount: totalAmount ? (r.percentage/100) * totalAmount : 0,
+                fraction: TRANSLATIONS[lang].fractions[r.fractionKey] || r.fractionKey
+            }));
         };
 
-        // --- UI COMPONENTS ---
-        const SidebarItem = ({ icon, label, active, onClick }) => (
-            <button onClick={onClick} className={`flex items-center space-x-4 w-full px-4 py-3 rounded-xl transition-all duration-300 ${active ? 'bg-blue-600/10 text-blue-400 border border-blue-400/20 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}>
-                <span className={active ? 'scale-110' : ''}>{icon}</span>
-                <span className="text-sm font-black tracking-wide uppercase">{label}</span>
-            </button>
-        );
-
-        const NavItem = ({ icon, label, active, onClick }) => (
-            <button onClick={onClick} className={`flex flex-col items-center justify-center space-y-1 w-full transition-all duration-300 ${active ? 'text-blue-400 scale-110' : 'text-slate-500'}`}>
-                {icon}
-                <span className="text-[10px] font-bold uppercase">{label}</span>
-            </button>
-        );
-
-        const ToggleButton = ({ label, active, onClick }) => (
-            <button onClick={onClick} className={`flex items-center justify-between p-6 rounded-3xl border transition-all duration-300 ${active ? 'bg-blue-600/20 border-blue-400 text-blue-100 shadow-inner' : 'bg-slate-950 border-white/5 text-slate-500 hover:bg-white/5'}`}>
-                <span className="text-xs font-black uppercase tracking-widest">{label}</span>
-                <div className={`w-5 h-5 rounded-full border-2 transition-all duration-300 ${active ? 'bg-blue-400 border-blue-400 scale-125 shadow-lg' : 'bg-slate-800 border-slate-700'}`}></div>
-            </button>
-        );
-
-        const Counter = ({ label, value, onDelta, disabled }) => (
-            <div className={`flex flex-col p-6 rounded-3xl border bg-slate-950 border-white/5 ${disabled ? 'opacity-20 pointer-events-none' : 'hover:border-white/10 transition-all'}`}>
-                <span className="text-xs font-black uppercase tracking-widest text-slate-500 mb-5">{label}</span>
-                <div className="flex items-center justify-between">
-                    <button onClick={() => onDelta(-1)} className="p-3 bg-slate-900 rounded-2xl border border-white/10 hover:text-blue-400 transition-colors"><Minus size={18} /></button>
-                    <span className="font-black text-white text-2xl tracking-tighter">{value}</span>
-                    <button onClick={() => onDelta(1)} className="p-3 bg-slate-900 rounded-2xl border border-white/10 hover:text-blue-400 transition-colors"><Plus size={18} /></button>
-                </div>
-            </div>
-        );
-
-        const GoldPriceBox = () => {
-            const [data, setData] = useState(null);
-            const [loading, setLoading] = useState(true);
-            useEffect(() => { fetchGoldPrice().then(res => { setData(res); setLoading(false); }); }, []);
+        const HeirCard = ({ r, count, lang, mode }) => {
+            const t = TRANSLATIONS[lang];
+            const isExcluded = r.isMahjub;
             return (
-                <div className="glass-card rounded-3xl p-6 border border-white/10 w-full mb-6 relative overflow-hidden shadow-2xl animate-fade-in">
+                <div className={`p-6 rounded-3xl glass-card border flex flex-col transition-all ${isExcluded ? 'mahjub-card' : 'hover:border-blue-500/30'}`}>
                     <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="bg-amber-500/20 p-2.5 rounded-xl border border-amber-500/30"><Coins className="text-amber-400" size={20} /></div>
-                            <div><h3 className="text-sm font-bold text-slate-100 tracking-tight">Gold Price (24K)</h3><p className="text-[11px] text-slate-400 uppercase tracking-widest font-black">Live Market Rate</p></div>
+                        <div>
+                            <h3 className={`font-black text-xl uppercase tracking-tight ${isExcluded ? 'text-slate-500' : 'text-slate-100'}`}>
+                                {r.name} {count > 1 && `(${count})`}
+                            </h3>
+                            {isExcluded && (
+                                <p className="mt-2 text-[10px] font-bold text-blue-400 uppercase tracking-widest bg-blue-400/5 px-2 py-1 rounded-lg inline-block">
+                                    {t.blockedBy} {r.blockedBy}
+                                </p>
+                            )}
                         </div>
-                        {loading ? <RefreshCcw className="animate-spin text-blue-400" size={16} /> : <div className="text-[10px] text-cyan-400 font-black border border-cyan-400/30 px-2.5 py-1 rounded-full uppercase tracking-tighter">Live</div>}
-                    </div>
-                    <div className="flex items-baseline space-x-2"><span className="text-3xl font-black text-white tracking-tighter">₹ {loading ? '---' : data?.price.toLocaleString()}</span><span className="text-sm text-slate-500 font-bold uppercase tracking-widest">/ gram</span></div>
-                </div>
-            );
-        };
-
-        // --- PAGES ---
-        const Home = ({ setPage, school }) => {
-            const schoolName = school.charAt(0).toUpperCase() + school.slice(1);
-            const cards = [
-                { title: 'Inheritance Shares', label: 'By Fraction', icon: <CalcIcon size={24} />, color: 'from-cyan-500 to-blue-600', page: Page.InheritanceCalc },
-                { title: 'Estate Amount', label: 'By Money', icon: <Wallet size={24} />, color: 'from-indigo-500 to-purple-600', page: Page.InheritanceAmount },
-                { title: 'Zakah Calc', label: 'Asset Threshold', icon: <Scale size={24} />, color: 'from-emerald-500 to-teal-600', page: Page.ZakahCalc },
-                { title: 'Inheritance Rules', label: 'Legal Guide', icon: <BookOpen size={24} />, color: 'from-amber-500 to-orange-600', page: Page.InheritanceRules },
-                { title: 'Zakah Rules', label: 'Conditions', icon: <ShieldCheck size={24} />, color: 'from-sky-500 to-blue-500', page: Page.ZakahRules },
-                { title: 'Visual Insights', label: 'Charts & Flow', icon: <BarChart3 size={24} />, color: 'from-fuchsia-500 to-pink-600', page: Page.Charts },
-            ];
-            return (
-                <div className="space-y-8 lg:space-y-12 animate-fade-in">
-                    <section className="text-center py-4">
-                        <div className="inline-block p-6 bg-blue-500/10 rounded-[2rem] mb-6 border border-blue-400/20 shadow-2xl"><Scale className="text-blue-400" size={48} /></div>
-                        <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tighter">Sunni Fiqh Hub</h2>
-                        <div className="flex justify-center mt-4"><span className="px-5 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-full border border-blue-400 shadow-lg">Active: {schoolName} Madhhab</span></div>
-                    </section>
-                    <div className="max-w-2xl mx-auto"><GoldPriceBox /></div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
-                        {cards.map((c, i) => (
-                            <button key={i} onClick={() => setPage(c.page)} className="flex flex-col items-start p-7 glass-card rounded-3xl border border-white/10 hover:border-blue-400/50 transition-all duration-500 text-left group overflow-hidden relative">
-                                <div className={`bg-gradient-to-br ${c.color} p-4 rounded-2xl text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>{c.icon}</div>
-                                <h3 className="text-sm lg:text-base font-black text-slate-100 tracking-wide uppercase">{c.title}</h3>
-                                <p className="text-[10px] font-bold text-slate-500 mt-2 uppercase tracking-widest">{c.label}</p>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-
-        const InheritanceCalc = ({ mode, setPage, school }) => {
-            const [inputs, setInputs] = useState({ husband: false, wife: 0, father: false, mother: false, sons: 0, daughters: 0, fullBrothers: 0, fullSisters: 0 });
-            const [totalAmount, setTotalAmount] = useState(0);
-            const [results, setResults] = useState(null);
-            const schoolName = school.charAt(0).toUpperCase() + school.slice(1);
-
-            const handleCalculate = () => setResults(calculateInheritance(inputs, mode === 'amount' ? totalAmount : undefined, school));
-
-            if (results) return (
-                <div className="space-y-6 animate-fade-in pb-16">
-                    <button onClick={() => setResults(null)} className="flex items-center text-blue-400 text-xs font-black uppercase tracking-widest hover:text-blue-300 transition-colors"><ArrowLeft size={16} className="mr-2" /> Adjust Heirs</button>
-                    <div className="glass-card rounded-[2.5rem] p-6 lg:p-10 border border-white/10 shadow-2xl">
-                        <div className="flex justify-between items-center mb-10"><h2 className="text-2xl font-black text-white flex items-center tracking-tight uppercase"><CalcIcon className="mr-4 text-blue-400" size={32} /> Report — {schoolName}</h2>{mode === 'amount' && <div className="text-right"><span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Estate</span><div className="text-xl font-black text-blue-400">₹{totalAmount.toLocaleString()}</div></div>}</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            {results.map((r, i) => {
-                                let count = 1;
-                                if (r.name.includes('Wives')) count = inputs.wife;
-                                if (r.name.includes('Sons')) count = inputs.sons;
-                                if (r.name.includes('Daughters')) count = inputs.daughters;
-                                return (
-                                    <div key={i} className="p-6 bg-white/5 rounded-3xl border border-white/5 hover:border-blue-500/30 transition-all">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div><h3 className="font-black text-slate-100 text-lg uppercase tracking-tight">{r.name}</h3><p className="text-[11px] text-slate-400 font-bold leading-relaxed mt-2">{r.description}</p></div>
-                                            <div className="text-right ml-4 shrink-0"><div className="text-blue-400 font-black text-2xl tracking-tighter">{r.fraction}</div><div className="text-[10px] text-slate-500 font-black mt-1">{r.percentage.toFixed(2)}%</div></div>
-                                        </div>
-                                        {mode === 'amount' && r.amount !== undefined && (
-                                            <div className="mt-6 flex flex-wrap gap-2">
-                                                <div className="bg-blue-600/20 border border-blue-400/30 px-4 py-2 rounded-2xl text-xs font-black text-blue-300">Total: ₹{r.amount.toLocaleString()}</div>
-                                                {count > 1 && <div className="bg-indigo-600/20 border border-indigo-400/30 px-4 py-2 rounded-2xl text-xs font-black text-indigo-300 flex items-center"><Users size={14} className="mr-2" /> Each: ₹{(r.amount / count).toLocaleString()}</div>}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            );
-
-            return (
-                <div className="space-y-8 animate-fade-in pb-10">
-                    <div className="flex items-center space-x-4"><button onClick={() => setPage(Page.Home)} className="p-3 bg-slate-900 border border-white/10 rounded-2xl text-blue-400 hover:bg-slate-800 transition-all shadow-lg"><ArrowLeft size={24} /></button><h2 className="text-2xl font-black text-white tracking-tight uppercase">{mode === 'amount' ? 'Financial Estate' : 'Fractional Shares'}</h2></div>
-                    <div className="glass-card rounded-[2.5rem] p-6 lg:p-10 border border-white/10 shadow-2xl space-y-10">
-                        {mode === 'amount' && (
-                            <div className="max-w-md mx-auto space-y-3"><label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-2">Total Net Estate (INR)</label><input type="number" placeholder="0.00" className="w-full p-6 bg-slate-950 border border-white/10 rounded-3xl text-white font-black text-2xl focus:ring-4 focus:ring-blue-500/20 outline-none transition-all" onChange={e => setTotalAmount(Number(e.target.value))} /></div>
-                        )}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <ToggleButton label="Husband" active={inputs.husband} onClick={() => setInputs(prev => ({ ...prev, husband: !prev.husband, wife: 0 }))} />
-                            <Counter label="Wives" value={inputs.wife} onDelta={d => setInputs(p => ({ ...p, wife: Math.max(0, p.wife + d), husband: false }))} />
-                            <ToggleButton label="Father" active={inputs.father} onClick={() => setInputs(p => ({ ...p, father: !p.father }))} />
-                            <ToggleButton label="Mother" active={inputs.mother} onClick={() => setInputs(p => ({ ...p, mother: !p.mother }))} />
-                            <Counter label="Sons" value={inputs.sons} onDelta={d => setInputs(p => ({ ...p, sons: Math.max(0, p.sons + d) }))} />
-                            <Counter label="Daughters" value={inputs.daughters} onDelta={d => setInputs(p => ({ ...p, daughters: Math.max(0, p.daughters + d) }))} />
-                            <Counter label="Full Bros" value={inputs.fullBrothers} onDelta={d => setInputs(p => ({ ...p, fullBrothers: Math.max(0, p.fullBrothers + d) }))} />
-                            <Counter label="Full Sis" value={inputs.fullSisters} onDelta={d => setInputs(p => ({ ...p, fullSisters: Math.max(0, p.fullSisters + d) }))} />
-                        </div>
-                        <div className="max-w-md mx-auto pt-4"><button onClick={handleCalculate} className="w-full bg-blue-600 text-white py-6 rounded-3xl font-black flex items-center justify-center space-x-4 hover:bg-blue-500 transition-all uppercase tracking-widest shadow-2xl text-lg"><CalcIcon size={28} /><span>Run Calculation</span></button></div>
-                    </div>
-                </div>
-            );
-        };
-
-        const ZakahCalc = ({ setPage, school }) => {
-            const [inputs, setInputs] = useState({ cash: 0, goldWeight: 0, businessAssets: 0, debts: 0 });
-            const [goldPrice, setGoldPrice] = useState(0);
-            const [calculated, setCalculated] = useState(false);
-            useEffect(() => { fetchGoldPrice().then(res => setGoldPrice(res.price)); }, []);
-
-            const allowsDebt = school === School.HANAFI || school === School.HANBALI;
-            const threshold = goldPrice * NISAB_GOLD_GRAMS;
-            const total = inputs.cash + (inputs.goldWeight * goldPrice) + inputs.businessAssets;
-            const net = allowsDebt ? Math.max(0, total - inputs.debts) : total;
-            const payable = net >= threshold ? net * 0.025 : 0;
-
-            return (
-                <div className="space-y-6 animate-fade-in pb-16">
-                    <div className="flex items-center space-x-3"><button onClick={() => setPage(Page.Home)} className="p-2.5 bg-slate-900 border border-white/10 rounded-xl text-blue-400 hover:bg-slate-800 transition-all"><ArrowLeft size={20} /></button><h2 className="text-xl font-black text-white uppercase tracking-tight">Zakah Assessment</h2></div>
-                    <div className="glass-card rounded-[2rem] p-6 lg:p-10 shadow-2xl border border-white/10 space-y-8">
-                        <div className="bg-blue-600/10 p-6 rounded-2xl border border-blue-400/20 flex items-start space-x-4"><Scale className="text-blue-400 shrink-0" size={24} /><div><h4 className="text-[10px] font-black text-blue-300 uppercase tracking-[0.2em]">{school.toUpperCase()} POSITION</h4><p className="text-xs text-blue-100 leading-relaxed mt-2 font-medium">{allowsDebt ? "This school permits deducting liabilities before assessment." : "In this school, personal debts typically do not reduce Nisab for cash assets."}</p></div></div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {[ { label: "Cash & Liquid Assets (INR)", key: 'cash' }, { label: "Gold Weight (Grams)", key: 'goldWeight' }, { label: "Trade Goods Value (INR)", key: 'businessAssets' } ].map(i => (
-                                <div key={i.key} className="space-y-2"><label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{i.label}</label><input type="number" className="w-full p-5 bg-slate-950 border border-white/5 rounded-2xl font-black text-white text-lg focus:border-blue-400 transition-all outline-none" onChange={e => setInputs(p => ({...p, [i.key]: Number(e.target.value)}))} /></div>
-                            ))}
-                            <div className={`transition-all ${!allowsDebt ? 'opacity-30' : ''}`}><label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Personal Liabilities (INR)</label><input type="number" disabled={!allowsDebt} className="w-full p-5 bg-slate-950 border border-white/5 rounded-2xl font-black text-white" placeholder={allowsDebt ? "Total Debt" : "Not Deductible"} onChange={e => setInputs(p => ({...p, debts: Number(e.target.value)}))} /></div>
-                        </div>
-                        <button onClick={() => setCalculated(true)} className="w-full bg-blue-600 text-white py-6 rounded-3xl font-black shadow-2xl hover:bg-blue-500 transition-all uppercase tracking-widest text-lg">Assess Zakah</button>
-                        {calculated && (
-                            <div className="mt-8 p-8 bg-slate-950/80 rounded-[2rem] border border-blue-400/30 animate-fade-in shadow-2xl">
-                                <div className="flex justify-between items-center mb-6"><span className="text-xs font-black text-slate-400 uppercase tracking-widest">Nisāb Verification</span><span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${net >= threshold ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>{net >= threshold ? 'Mandatory (Wājib)' : 'Exempt'}</span></div>
-                                <p className="text-[10px] text-blue-300 uppercase font-black tracking-[0.2em] mb-1">Total Zakah Due (2.5%)</p><h3 className="text-4xl lg:text-5xl font-black text-white tracking-tighter">₹ {payable.toLocaleString(undefined, { maximumFractionDigits: 2 })}</h3>
+                        {!isExcluded && (
+                            <div className="text-right">
+                                <div className="text-2xl font-black text-blue-400 tracking-tighter">{r.fraction}</div>
+                                <div className="text-sm font-black text-slate-500">{r.percentage.toFixed(2)}%</div>
                             </div>
                         )}
                     </div>
-                </div>
-            );
-        };
-
-        const Charts = ({ school }) => {
-            const schoolName = school.charAt(0).toUpperCase() + school.slice(1);
-            const data = useMemo(() => [ { name: 'Spouse', value: 25 }, { name: 'Mother', value: 16.67 }, { name: 'Father', value: 16.67 }, { name: 'Son', value: 27.77 }, { name: 'Daughter', value: 13.89 } ], []);
-            const COLORS = ['#60A5FA', '#818CF8', '#C084FC', '#2DD4BF', '#FBBF24'];
-            return (
-                <div className="space-y-12 pb-16 animate-fade-in">
-                    <div className="text-center max-w-2xl mx-auto"><div className="inline-block p-6 bg-blue-500/10 rounded-full mb-6 border border-blue-400/20"><BarChart3 className="text-blue-400" size={40} /></div><h2 className="text-3xl lg:text-5xl font-black text-white uppercase tracking-tighter">Visual Analytics</h2><p className="text-[10px] text-slate-500 font-black tracking-[0.4em] mt-3 uppercase">{schoolName} Mathematical Logic</p></div>
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                        <div className="glass-card p-8 lg:p-12 rounded-[2.5rem] shadow-2xl border border-white/10 flex flex-col items-center">
-                            <h3 className="text-sm font-black text-slate-300 mb-10 w-full flex items-center uppercase tracking-widest"><Layers className="mr-4 text-blue-400" size={20} /> Example Distribution</h3>
-                            <div className="h-[350px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={data} cx="50%" cy="45%" innerRadius={80} outerRadius={110} paddingAngle={8} dataKey="value" stroke="none">
-                                            {data.map((e, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                                        </Pie>
-                                        <RechartsTooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px', fontWeight: 'bold' }} />
-                                        <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#64748b' }} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
+                    {!isExcluded && mode === 'amount' && (
+                        <div className="mt-auto pt-4 border-t border-white/5">
+                            <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Value</span>
+                            <div className="text-xl font-black text-white">₹{r.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                            {count > 1 && <div className="text-[9px] text-blue-400 font-bold uppercase mt-1">₹{(r.amount/count).toLocaleString()} per person</div>}
                         </div>
-                        <div className="glass-card p-8 lg:p-12 rounded-[2.5rem] shadow-2xl border border-white/10">
-                            <h3 className="text-sm font-black text-slate-300 mb-10 flex items-center uppercase tracking-widest"><GitGraph className="mr-4 text-indigo-400" size={20} /> Procedural Pipeline</h3>
-                            <div className="space-y-6">
-                                {[ "Aggregate Assets", "Assess Liabilities", "Cross Threshold", "Distribute 2.5%" ].map((s, i) => (
-                                    <React.Fragment key={i}>
-                                        <div className={`p-6 rounded-3xl border text-center font-black text-[10px] uppercase tracking-widest transition-all ${i === 3 ? 'bg-blue-600 border-blue-400 text-white shadow-xl scale-105' : 'bg-slate-950 border-white/5 text-slate-500'}`}>{s}</div>
-                                        {i < 3 && <div className="flex justify-center"><ChevronDown size={20} className="text-slate-800" /></div>}
-                                    </React.Fragment>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const RulesPage = ({ type, school }) => {
-            const isHanafi = school === School.HANAFI;
-            const isShafi = school === School.SHAFI;
-            const schoolName = school.charAt(0).toUpperCase() + school.slice(1);
-            
-            if (type === 'inheritance') return (
-                <div className="space-y-8 animate-fade-in pb-16">
-                    <div className="text-center"><h1 className="text-3xl font-black text-white uppercase tracking-tighter">{schoolName} Fara'id Rules</h1></div>
-                    <div className="glass-card p-8 rounded-[2rem] border border-white/10 space-y-6">
-                        <section className="space-y-4">
-                            <h2 className="text-sm font-black text-blue-400 uppercase tracking-widest flex items-center"><Bookmark className="mr-3" size={18} /> Radd (The Return)</h2>
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                                {isHanafi || school === School.HANBALI 
-                                    ? "Surplus residue is returned proportionately to blood relatives if no agnates exist."
-                                    : "Classical positions state that surplus residue is held by the Public Treasury for community welfare."}
-                            </p>
-                        </section>
-                        <section className="space-y-4 pt-4 border-t border-white/5">
-                            <h2 className="text-sm font-black text-indigo-400 uppercase tracking-widest flex items-center"><Scale className="mr-3" size={18} /> Fixed Portions</h2>
-                            <ul className="text-[11px] space-y-2 text-slate-400 font-bold uppercase tracking-tight">
-                                <li>• Husband: 1/2 or 1/4</li>
-                                <li>• Wife: 1/4 or 1/8</li>
-                                <li>• Mother: 1/3 or 1/6</li>
-                                <li>• Father: 1/6 (Agnatic)</li>
-                            </ul>
-                        </section>
-                    </div>
-                </div>
-            );
-            
-            return (
-                <div className="space-y-8 animate-fade-in pb-16">
-                    <div className="text-center"><h1 className="text-3xl font-black text-white uppercase tracking-tighter">{schoolName} Zakah Principles</h1></div>
-                    <div className="glass-card p-8 rounded-[2rem] border border-white/10 space-y-6">
-                        <section className="space-y-4">
-                            <h2 className="text-sm font-black text-emerald-400 uppercase tracking-widest flex items-center"><CheckCircle2 className="mr-3" size={18} /> Core Requirements</h2>
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">Must possess Nisab for one lunar year (Hawl). Calculated as 2.5% of total liquid wealth.</p>
-                        </section>
-                        <section className="space-y-4 pt-4 border-t border-white/5">
-                            <h2 className="text-sm font-black text-amber-400 uppercase tracking-widest flex items-center"><AlertCircle className="mr-3" size={18} /> Liability Treatment</h2>
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                                {isHanafi || school === School.HANBALI ? "Personal debts reduce the zakatable pool." : "In this school, debts generally do not affect the Nisab of apparent wealth."}
-                            </p>
-                        </section>
-                    </div>
-                </div>
-            );
-        };
-
-        const Layout = ({ children, currentPage, setPage, currentSchool, setSchool }) => {
-            const navItems = [
-                { id: Page.Home, icon: <HomeIcon size={20} />, label: "Home" },
-                { id: Page.ZakahCalc, icon: <Wallet size={20} />, label: "Zakah" },
-                { id: Page.InheritanceCalc, icon: <CalcIcon size={20} />, label: "Inherit" },
-                { id: Page.Charts, icon: <BarChart3 size={20} />, label: "Charts" },
-                { id: Page.About, icon: <InfoIcon size={20} />, label: "Info" },
-            ];
-            const schools = [ { id: School.SHAFI, label: "Shāfiʿī" }, { id: School.HANAFI, label: "Ḥanafī" }, { id: School.MALIKI, label: "Mālikī" }, { id: School.HANBALI, label: "Ḥanbalī" } ];
-            
-            return (
-                <div className="min-h-screen bg-[#020617] text-slate-100 flex flex-col lg:flex-row">
-                    <aside className="hidden lg:flex flex-col w-64 glass-card border-r border-white/5 sticky top-0 h-screen p-8 shrink-0 shadow-2xl z-40">
-                        <div className="mb-12"><h1 className="text-2xl font-black tracking-tighter bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Fiqh Hub</h1><p className="text-[10px] text-blue-500 font-black uppercase tracking-[0.3em] mt-1">Sunni Tech</p></div>
-                        <div className="mb-10"><label className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 block">Active Madhhab</label><div className="grid grid-cols-1 gap-2">{schools.map(s => (<button key={s.id} onClick={() => setSchool(s.id)} className={`text-left px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${currentSchool === s.id ? 'bg-blue-600 text-white shadow-xl' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}>{s.label}</button>))}</div></div>
-                        <nav className="flex-grow space-y-1">{navItems.map(item => (<SidebarItem key={item.id} icon={item.icon} label={item.label} active={currentPage === item.id} onClick={() => setPage(item.id)} />))}</nav>
-                    </aside>
-
-                    <div className="flex-grow flex flex-col items-center">
-                        <header className="lg:hidden w-full bg-slate-900/80 backdrop-blur-md text-white py-4 px-6 border-b border-white/10 sticky top-0 z-50 flex justify-between items-center shadow-2xl">
-                            <h1 className="text-xl font-black tracking-tighter bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Fiqh Hub</h1>
-                            <div className="relative group"><button className="text-[9px] text-blue-200 uppercase tracking-widest font-black border border-blue-400/30 px-3 py-1.5 rounded-lg bg-blue-500/10 flex items-center">{schools.find(s=>s.id===currentSchool).label} <ChevronDown size={12} className="ml-2" /></button><div className="absolute right-0 mt-2 w-32 glass-card border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[60]">{schools.map(s => (<button key={s.id} onClick={() => setSchool(s.id)} className="w-full text-left px-4 py-3 text-[10px] font-black uppercase text-slate-300 hover:bg-blue-600 hover:text-white border-b border-white/5 last:border-0">{s.label}</button>))}</div></div>
-                        </header>
-                        <main className="w-full max-w-4xl lg:max-w-5xl px-6 py-10 lg:py-16 flex-grow">{children}</main>
-                    </div>
-
-                    <nav className="lg:hidden bottom-nav glass-card border-t border-white/10 flex justify-around items-center py-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">{navItems.map(item => (<NavItem key={item.id} icon={item.icon} label={item.label} active={currentPage === item.id} onClick={() => setPage(item.id)} />))}</nav>
+                    )}
                 </div>
             );
         };
 
         const App = () => {
-            const [currentPage, setCurrentPage] = useState(Page.Home);
-            const [currentSchool, setCurrentSchool] = useState(School.SHAFI);
-            const renderPage = () => {
-                switch (currentPage) {
-                    case Page.Home: return <Home setPage={setCurrentPage} school={currentSchool} />;
-                    case Page.InheritanceCalc: return <InheritanceCalc mode="share" setPage={setCurrentPage} school={currentSchool} />;
-                    case Page.InheritanceAmount: return <InheritanceCalc mode="amount" setPage={setCurrentPage} school={currentSchool} />;
-                    case Page.ZakahCalc: return <ZakahCalc setPage={setCurrentPage} school={currentSchool} />;
-                    case Page.InheritanceRules: return <RulesPage type="inheritance" school={currentSchool} />;
-                    case Page.ZakahRules: return <RulesPage type="zakah" school={currentSchool} />;
-                    case Page.Charts: return <Charts school={currentSchool} />;
-                    case Page.About: return (
-                        <div className="space-y-8 animate-fade-in">
-                            <div className="glass-card rounded-[2.5rem] p-10 border border-white/10 shadow-2xl">
-                                <h2 className="text-2xl font-black text-white uppercase mb-6 flex items-center tracking-tight"><ShieldCheck className="mr-4 text-blue-400" size={32} /> Technical Academic Hub</h2>
-                                <p className="text-sm text-slate-300 leading-relaxed font-medium">The Fiqh Hub is a specialized calculator engine designed to translate complex Islamic jurisprudence into precise mathematical algorithms. We support the four major Sunni schools of law, ensuring fidelity to classical legal manuals.</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
-                                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5"><Code className="text-indigo-400 mb-3" size={20} /><h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Algorithmic Precision</h4><p className="text-xs text-slate-500 mt-2">Binary-verified fractional distribution based on Al-Sirajiyya and related manuals.</p></div>
-                                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5"><Server className="text-blue-400 mb-3" size={20} /><h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Real-time Data</h4><p className="text-xs text-slate-500 mt-2">Dynamic Nisab evaluation using synchronized XAU/INR global market endpoints.</p></div>
-                                </div>
+            const [page, setPage] = useState(Page.Home);
+            const [lang, setLang] = useState('ml');
+            const [inputs, setInputs] = useState({ husband: false, wife: 0, father: false, mother: false, grandfather: false, patGrandmother: false, matGrandmother: false, sons: 0, daughters: 0, grandsons: 0, granddaughters: 0, fullBrothers: 0, fullSisters: 0, patBrothers: 0, patSisters: 0, matBrothers: 0, matSisters: 0 });
+            const [estate, setEstate] = useState(0);
+            const [results, setResults] = useState(null);
+            const [goldPrice, setGoldPrice] = useState(7950);
+            const [zakahInputs, setZakahInputs] = useState({ cash: 0, gold: 0 });
+            const [zakahRes, setZakahRes] = useState(null);
+
+            const t = TRANSLATIONS[lang];
+
+            const renderHome = () => (
+                <div className={`space-y-12 animate-fade-in ${lang === 'ar' ? 'arabic' : ''}`}>
+                    <section className="text-center py-10">
+                        <div className="inline-block p-8 bg-blue-600/10 rounded-[3rem] mb-6 border border-blue-400/20"><Scale className="text-blue-400" size={56} /></div>
+                        <h2 className="text-5xl font-black text-white tracking-tighter mb-2 uppercase">{t.title}</h2>
+                        <span className="text-[10px] font-black tracking-[0.4em] text-blue-400 uppercase">{t.subtitle}</span>
+                    </section>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <button onClick={() => setPage(Page.InheritanceCalc)} className="p-10 glass-card rounded-[2.5rem] hover:border-blue-400 group transition-all text-left">
+                            <div className="bg-blue-600 p-4 rounded-2xl mb-6 inline-block"><CalcIcon size={28}/></div>
+                            <h3 className="text-2xl font-black uppercase tracking-tight">{t.shares}</h3>
+                            <p className="text-xs text-slate-500 mt-2 font-bold uppercase tracking-widest">Fara'id Calculator</p>
+                        </button>
+                        <button onClick={() => setPage(Page.InheritanceAmount)} className="p-10 glass-card rounded-[2.5rem] hover:border-blue-400 group transition-all text-left">
+                            <div className="bg-indigo-600 p-4 rounded-2xl mb-6 inline-block"><Wallet size={28}/></div>
+                            <h3 className="text-2xl font-black uppercase tracking-tight">{t.value}</h3>
+                            <p className="text-xs text-slate-500 mt-2 font-bold uppercase tracking-widest">Estate Distribution</p>
+                        </button>
+                        <button onClick={() => setPage(Page.ZakahCalc)} className="p-10 glass-card rounded-[2.5rem] hover:border-emerald-400 group transition-all text-left">
+                            <div className="bg-emerald-600 p-4 rounded-2xl mb-6 inline-block"><Scale size={28}/></div>
+                            <h3 className="text-2xl font-black uppercase tracking-tight">{t.zakah}</h3>
+                            <p className="text-xs text-slate-500 mt-2 font-bold uppercase tracking-widest">Asset Purification</p>
+                        </button>
+                    </div>
+
+                    <div className="p-8 glass-card rounded-3xl border border-blue-400/10 flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-amber-500/10 rounded-xl"><Coins className="text-amber-500" size={24}/></div>
+                            <div>
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gold Reference</h4>
+                                <div className="text-xl font-black">₹{goldPrice.toLocaleString()} <span className="text-sm text-slate-500">/ g</span></div>
                             </div>
                         </div>
-                    );
-                    default: return <Home setPage={setCurrentPage} school={currentSchool} />;
-                }
-            };
-            return (<Layout currentPage={currentPage} setPage={setCurrentPage} currentSchool={currentSchool} setSchool={setCurrentSchool}>{renderPage()}</Layout>);
-        };
+                        <div className="text-[9px] font-black uppercase bg-blue-600/10 text-blue-400 px-3 py-1 rounded-full border border-blue-400/20">24K Market Live</div>
+                    </div>
+                </div>
+            );
 
+            const renderInherit = (mode) => {
+                if (results) return (
+                    <div className="space-y-8 animate-fade-in pb-32">
+                        <button onClick={() => setResults(null)} className="flex items-center gap-2 text-blue-400 font-black uppercase text-xs tracking-widest"><ArrowLeft size={16}/> {t.back}</button>
+                        <div className="flex justify-between items-end border-b border-white/5 pb-8">
+                            <h2 className="text-4xl font-black uppercase tracking-tighter">{t.shares} Report</h2>
+                            {mode === 'amount' && <div className="text-right text-blue-400 font-black text-2xl">₹{estate.toLocaleString()}</div>}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {results.map((r, i) => (
+                                <HeirCard key={i} r={r} count={['husband','father','mother','grandfather'].includes(r.id) ? 1 : inputs[r.id]} lang={lang} mode={mode} />
+                            ))}
+                        </div>
+                    </div>
+                );
+
+                return (
+                    <div className="space-y-10 animate-fade-in pb-32">
+                        <div className="flex items-center gap-4"><button onClick={() => setPage(Page.Home)} className="p-3 bg-slate-900 rounded-xl"><ArrowLeft size={20}/></button><h2 className="text-2xl font-black uppercase">{mode === 'amount' ? t.value : t.shares}</h2></div>
+                        <div className="glass-card rounded-[3rem] p-8 lg:p-12 space-y-12">
+                            {mode === 'amount' && (
+                                <div className="max-w-xs mx-auto text-center space-y-3">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Net Estate (INR)</label>
+                                    <input type="number" className="w-full p-6 bg-slate-950 border border-white/10 rounded-3xl text-3xl font-black text-center text-white" onChange={e => setEstate(Number(e.target.value))} placeholder="0.00" />
+                                </div>
+                            )}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <button onClick={()=>setInputs(p=>({...p, husband:!p.husband, wife:0}))} className={`p-5 rounded-2xl border flex justify-between items-center ${inputs.husband ? 'bg-blue-600/10 border-blue-400 text-white' : 'bg-slate-950 border-white/5 text-slate-500'}`}><span className="text-[10px] font-black uppercase tracking-tight">{HEIR_INFO.husband[lang]}</span><div className={`w-4 h-4 rounded-full border-2 ${inputs.husband ? 'bg-blue-400' : 'border-slate-800'}`}/></button>
+                                <div className="p-5 rounded-2xl bg-slate-950 border border-white/5 flex flex-col gap-3">
+                                    <span className="text-[10px] font-black text-slate-500 uppercase">{HEIR_INFO.wife[lang]}</span>
+                                    <div className="flex justify-between items-center"><button onClick={()=>setInputs(p=>({...p, wife:Math.max(0, p.wife-1), husband:false}))} className="p-2 bg-slate-900 rounded-lg"><Minus size={12}/></button><span className="font-black">{inputs.wife}</span><button onClick={()=>setInputs(p=>({...p, wife:p.wife+1, husband:false}))} className="p-2 bg-slate-900 rounded-lg"><Plus size={12}/></button></div>
+                                </div>
+                                {['father','mother','grandfather','patGrandmother','matGrandmother'].map(id => (
+                                    <button key={id} onClick={()=>setInputs(p=>({...p, [id]:!p[id]}))} className={`p-5 rounded-2xl border flex justify-between items-center ${inputs[id] ? 'bg-blue-600/10 border-blue-400 text-white' : 'bg-slate-950 border-white/5 text-slate-500'}`}><span className="text-[10px] font-black uppercase tracking-tight">{HEIR_INFO[id][lang]}</span><div className={`w-4 h-4 rounded-full border-2 ${inputs[id] ? 'bg-blue-400' : 'border-slate-800'}`}/></button>
+                                ))}
+                                {['sons','daughters','fullBrothers','fullSisters','patBrothers','patSisters'].map(id => (
+                                    <div key={id} className="p-5 rounded-2xl bg-slate-950 border border-white/5 flex flex-col gap-3">
+                                        <span className="text-[10px] font-black text-slate-500 uppercase">{HEIR_INFO[id][lang]}</span>
+                                        <div className="flex justify-between items-center"><button onClick={()=>setInputs(p=>({...p, [id]:Math.max(0, p[id]-1)}))} className="p-2 bg-slate-900 rounded-lg"><Minus size={12}/></button><span className="font-black">{inputs[id]}</span><button onClick={()=>setInputs(p=>({...p, [id]:p[id]+1}))} className="p-2 bg-slate-900 rounded-lg"><Plus size={12}/></button></div>
+                                    </div>
+                                ))}
+                            </div>
+                            <button onClick={()=>setResults(calculateInheritance(inputs, estate, lang))} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl hover:bg-blue-500 transition-all">{t.btnRun}</button>
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderZakah = () => (
+                <div className="space-y-10 animate-fade-in pb-32">
+                    <div className="flex items-center gap-4"><button onClick={() => setPage(Page.Home)} className="p-3 bg-slate-900 rounded-xl"><ArrowLeft size={20}/></button><h2 className="text-2xl font-black uppercase">{t.zakah}</h2></div>
+                    <div className="glass-card rounded-[3rem] p-8 lg:p-12 space-y-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-3"><label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.cashSavings}</label><input type="number" className="w-full p-6 bg-slate-950 border border-white/5 rounded-2xl font-black text-xl" onChange={e=>setZakahInputs(p=>({...p, cash:Number(e.target.value)}))} /></div>
+                            <div className="space-y-3"><label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.goldGrams}</label><input type="number" className="w-full p-6 bg-slate-950 border border-white/5 rounded-2xl font-black text-xl" onChange={e=>setZakahInputs(p=>({...p, gold:Number(e.target.value)}))} /></div>
+                        </div>
+                        <button onClick={() => {
+                            const total = zakahInputs.cash + (zakahInputs.gold * goldPrice);
+                            const nisab = 85 * goldPrice;
+                            setZakahRes(total >= nisab ? total * 0.025 : 0);
+                        }} className="w-full bg-emerald-600 py-6 rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl hover:bg-emerald-500 transition-all">{t.calc}</button>
+                        {zakahRes !== null && (
+                            <div className="p-10 bg-slate-950/80 rounded-3xl border border-emerald-400/20 text-center animate-fade-in">
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase ${zakahRes > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{zakahRes > 0 ? "Wajib (Payable)" : "Exempt"}</span>
+                                <h3 className="text-5xl font-black mt-8 tracking-tighter">₹ {zakahRes.toLocaleString()}</h3>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <header className="bg-slate-900/60 backdrop-blur-xl border-b border-white/5 p-5 sticky top-0 z-50 flex justify-between items-center">
+                        <div className="flex items-center gap-3"><Scale className="text-blue-400" size={28}/><h1 className="font-black text-xl tracking-tighter">{t.title}</h1></div>
+                        <div className="flex bg-slate-950 p-1 rounded-xl border border-white/10">
+                            {['en','ml','ar'].map(l => (
+                                <button key={l} onClick={()=>setLang(l)} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${lang === l ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>{l}</button>
+                            ))}
+                        </div>
+                    </header>
+                    <main className="flex-grow w-full max-w-6xl mx-auto p-6 lg:p-12">
+                        {page === Page.Home && renderHome()}
+                        {page === Page.InheritanceCalc && renderInherit('share')}
+                        {page === Page.InheritanceAmount && renderInherit('amount')}
+                        {page === Page.ZakahCalc && renderZakah()}
+                    </main>
+                    <nav className="bottom-nav bg-slate-950/95 flex justify-around py-4 lg:hidden">
+                        <button onClick={()=>setPage(Page.Home)} className={`flex flex-col items-center gap-1 ${page === Page.Home ? 'text-blue-400' : 'text-slate-500'}`}><HomeIcon size={20}/><span className="text-[9px] font-black uppercase tracking-widest">{t.home}</span></button>
+                        <button onClick={()=>setPage(Page.InheritanceCalc)} className={`flex flex-col items-center gap-1 ${page === Page.InheritanceCalc ? 'text-blue-400' : 'text-slate-500'}`}><CalcIcon size={20}/><span className="text-[9px] font-black uppercase tracking-widest">{t.shares}</span></button>
+                        <button onClick={()=>setPage(Page.ZakahCalc)} className={`flex flex-col items-center gap-1 ${page === Page.ZakahCalc ? 'text-blue-400' : 'text-slate-500'}`}><Scale size={20}/><span className="text-[9px] font-black uppercase tracking-widest">{t.zakah}</span></button>
+                    </nav>
+                </div>
+            );
+        };
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
